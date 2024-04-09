@@ -6,6 +6,9 @@ import { fileURLToPath } from 'url';
 import multer from 'multer';
 import * as dotenv from 'dotenv' // see https://github.com/motdotla/dotenv#how-do-i-use-dotenv-with-import
 import bodyParser from 'body-parser'
+
+import mongoose from 'mongoose';
+import Customer from './CustomerModel.js';
 dotenv.config()
 
 const jsonParser = bodyParser.json()
@@ -17,6 +20,7 @@ console.log(__dirname);
 const app = express()
 const port = 8000
 //here is a change
+app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, '../build')));
 
@@ -115,6 +119,33 @@ const saveData = () => {
     console.log("JSON file has been saved.");
   });
 }
+
+
+
+
+app.post('/api/addInfo', async (req, res) => {
+  console.log("addInfo called");
+  let uri = process.env.MONGO_CONNECT;
+  await mongoose.connect(uri+ '/assignmet4', { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => {
+    console.log('Connected to MongoDB!!!!')
+  });
+  
+  try {
+    console.log('here!');
+    console.log(req.body);
+    const theCustomer = new Customer({
+      name: req.body.name,
+      movie: req.body.movie,
+      email: req.body.email
+    });
+    console.log(theCustomer);
+    await theCustomer.save();
+    res.sendStatus(200);
+  }catch(err) {
+    return res.status(206).json({message: "Missing one of the Customer fields"})
+  }
+})
 
 
 
